@@ -1,0 +1,540 @@
+html_code = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 공부 계획 세우기</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --primary-hover: #357ABD;
+            --bg-color: #F4F7F6;
+            --card-bg: #FFFFFF;
+            --text-color: #333333;
+            --sub-text: #666666;
+            --border-radius: 16px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            color: #2C3E50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        header p {
+            color: var(--sub-text);
+            font-size: 1.05rem;
+        }
+
+        /* Main CTA Card */
+        .cta-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .cta-card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #2C3E50;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 16px 36px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Content */
+        .modal {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.4rem;
+            color: #2C3E50;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #4A5568;
+            font-size: 0.95rem;
+        }
+
+        /* Subject Selection */
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .subject-btn {
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            padding: 12px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #4A5568;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+
+        .subject-btn i {
+            font-size: 1.2rem;
+            color: #718096;
+        }
+
+        .subject-btn.selected {
+            border-color: var(--primary-color);
+            background-color: #EBF8FF;
+            color: var(--primary-color);
+        }
+
+        .subject-btn.selected i {
+            color: var(--primary-color);
+        }
+
+        /* Time Selection */
+        .time-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .time-btn {
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #4A5568;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .time-btn.selected {
+            border-color: var(--primary-color);
+            background-color: #EBF8FF;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Plan List Section */
+        .plan-section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .plan-section h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #2C3E50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-list {
+            list-style: none;
+        }
+
+        .plan-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #F8FAFC;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 5px solid var(--primary-color);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .plan-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .plan-subject {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #2D3748;
+        }
+
+        .plan-time {
+            background: #E2E8F0;
+            color: #4A5568;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #A0AEC0;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: #E53E3E;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #A0AEC0;
+            padding: 30px 0;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .subject-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1><i class="fa-solid fa-graduation-cap" style="color: var(--primary-color);"></i> 오늘 공부 계획 세우기</h1>
+            <p>목표 과목과 공부 시간을 지정하고 맞춤 플랜을 생성해 보세요!</p>
+        </header>
+
+        <!-- Call To Action Section -->
+        <div class="cta-card">
+            <h2>새로운 공부 계획이 있으신가요?</h2>
+            <button class="btn-primary" id="openModalBtn">
+                <i class="fa-solid fa-plus"></i> 계획 생성하기
+            </button>
+        </div>
+
+        <!-- Plan List Display -->
+        <div class="plan-section">
+            <h2><i class="fa-solid fa-list-check"></i> 오늘의 공부 계획 목록</h2>
+            <ul class="plan-list" id="planList">
+                <div class="empty-msg" id="emptyMsg">아직 등록된 공부 계획이 없습니다. [계획 생성하기] 버튼을 눌러보세요!</div>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Selection Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>공부 계획 설정</h3>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+
+            <form id="planForm">
+                <!-- 1. 과목 선택 -->
+                <div class="form-group">
+                    <label>1. 공부할 과목 선택</label>
+                    <div class="subject-grid">
+                        <button type="button" class="subject-btn" data-value="국어">
+                            <i class="fa-solid fa-book"></i> 국어
+                        </button>
+                        <button type="button" class="subject-btn" data-value="수학">
+                            <i class="fa-solid fa-calculator"></i> 수학
+                        </button>
+                        <button type="button" class="subject-btn" data-value="영어">
+                            <i class="fa-solid fa-language"></i> 영어
+                        </button>
+                        <button type="button" class="subject-btn" data-value="과학">
+                            <i class="fa-solid fa-flask"></i> 과학
+                        </button>
+                        <button type="button" class="subject-btn" data-value="사회">
+                            <i class="fa-solid fa-globe"></i> 사회
+                        </button>
+                        <button type="button" class="subject-btn" data-value="코딩">
+                            <i class="fa-solid fa-code"></i> 코딩
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. 시간 선택 -->
+                <div class="form-group">
+                    <label>2. 공부할 시간 선택</label>
+                    <div class="time-grid">
+                        <button type="button" class="time-btn" data-value="30분">30분</button>
+                        <button type="button" class="time-btn" data-value="1시간">1시간</button>
+                        <button type="button" class="time-btn" data-value="1시간 30분">1시간 30분</button>
+                        <button type="button" class="time-btn" data-value="2시간">2시간</button>
+                    </div>
+                </div>
+
+                <!-- Complete Button -->
+                <button type="submit" class="submit-btn">계획 추가하기</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Elements
+        const openModalBtn = document.getElementById('openModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const planForm = document.getElementById('planForm');
+        const planList = document.getElementById('planList');
+        const emptyMsg = document.getElementById('emptyMsg');
+
+        const subjectBtns = document.querySelectorAll('.subject-btn');
+        const timeBtns = document.querySelectorAll('.time-btn');
+
+        let selectedSubject = '';
+        let selectedTime = '';
+
+        // Open Modal
+        openModalBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('active');
+        });
+
+        // Close Modal
+        closeModalBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            resetSelection();
+        }
+
+        // Subject Selection Logic
+        subjectBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                subjectBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedSubject = btn.getAttribute('data-value');
+            });
+        });
+
+        // Time Selection Logic
+        timeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                timeBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedTime = btn.getAttribute('data-value');
+            });
+        });
+
+        // Reset Selections
+        function resetSelection() {
+            subjectBtns.forEach(b => b.classList.remove('selected'));
+            timeBtns.forEach(b => b.classList.remove('selected'));
+            selectedSubject = '';
+            selectedTime = '';
+        }
+
+        // Submit Form
+        planForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (!selectedSubject) {
+                alert('공부할 과목을 선택해주세요!');
+                return;
+            }
+            if (!selectedTime) {
+                alert('공부할 시간을 선택해주세요!');
+                return;
+            }
+
+            // Hide Empty Message
+            if (emptyMsg) {
+                emptyMsg.style.display = 'none';
+            }
+
+            // Create Plan Item
+            const li = document.createElement('li');
+            li.className = 'plan-item';
+            li.innerHTML = `
+                <div class="plan-info">
+                    <span class="plan-subject">${selectedSubject}</span>
+                    <span class="plan-time"><i class="fa-regular fa-clock"></i> ${selectedTime}</span>
+                </div>
+                <button class="delete-btn" onclick="deletePlan(this)"><i class="fa-solid fa-trash-can"></i></button>
+            `;
+
+            planList.appendChild(li);
+
+            // Close Modal & Reset Form
+            closeModal();
+        });
+
+        // Delete Plan Item
+        function deletePlan(btn) {
+            const item = btn.parentElement;
+            item.remove();
+            
+            // Show empty msg if no items
+            if (planList.children.length === 1 && emptyMsg) {
+                emptyMsg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
+"""
+
+file_path = "study_planner.html"
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(html_code)
+
+print(f"File saved successfully as {file_path}")
